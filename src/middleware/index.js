@@ -1,5 +1,4 @@
 const shortid = require('shortid');
-const { authenticate } = require('@feathersjs/authentication').hooks;
 const { increment, setKey, getKey } = require('../utilities/redis-utils');
 // eslint-disable-next-line no-unused-vars
 module.exports = function(app) {
@@ -8,7 +7,7 @@ module.exports = function(app) {
   const redisClient = app.get('redisClient');
   app.post('/shorten-url', async function(req, res) {
     try {
-      const authResponse = await app.service('authentication').create({
+      await app.service('authentication').create({
         strategy: 'jwt',
         accessToken: req.headers.authorization
       });
@@ -23,14 +22,17 @@ module.exports = function(app) {
       shortURL,
       longURL,
       slashtag,
-      clicks: 0git
+      clicks: 0
     };
     setKey(redisClient, slashtag, longURL);
     const response = await app.service('shorten-url').create(urlObject);
     return res.send(response);
   });
 
-  app.get('/:shortid', async function(req, res) {
+  app.get('/:shortid', async function(req, res, next) {
+    if (req.params.shortid == 'user-clicks') {
+      next();
+    }
     const ipAddress =
       req.headers['x-forwarded-for'] ||
       req.connection.remoteAddress ||
