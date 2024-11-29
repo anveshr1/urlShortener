@@ -1,6 +1,6 @@
 # url-shortner
 
-> URL Shortener
+> A service to shorten URLs from the long URLs
 
 ## About
 
